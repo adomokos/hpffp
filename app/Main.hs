@@ -1,7 +1,14 @@
 module Main where
 
-import Lib
+import Hello
+import DogsRule
+import System.IO
 import Hpffp.AlgebraicDatatypes
 
 main :: IO ()
-main = someFunc
+main = do
+    hSetBuffering stdout NoBuffering
+    putStr "Please input your name: "
+    name <- getLine
+    sayHello name
+    dogs
