@@ -13,6 +13,9 @@ repl: ## Run a REPL for development
 	stack repl
 .PHONY: repl
 
+test-repl: ## Load the test libraries in the Repl
+	stack ghci --test
+
 run: ## Run the program
 	@stack build
 	@stack exec -- hpffp-exe
