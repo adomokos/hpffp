@@ -65,8 +65,14 @@ genMaybe' = do
     frequency [ (1, return Nothing)
               , (3, return (Just a))]
 
-main :: IO ()
-main = hspec $ do
+prop_additionGreater :: Int -> Bool
+prop_additionGreater x = x + 0 > x
+
+-- runQc :: IO ()
+-- runQc = quickCheck prop_additionGreater
+
+spec :: Spec
+spec = do
     describe "Division" $ do
         it "15 divided by 3 is 5" $ do
             divideBy 15 3 `shouldBe` (5, 0)
