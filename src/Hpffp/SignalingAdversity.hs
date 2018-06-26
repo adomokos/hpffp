@@ -44,8 +44,8 @@ nameOkay name =
 
 mkPerson' :: Name -> Age -> ValidatePerson Person
 mkPerson' name age =
-    liftA2 Person (nameOkay name) (ageOkay age)
-    {- mkPerson'' (nameOkay name) (ageOkay age) -}
+    mkPerson'' (nameOkay name) (ageOkay age)
+    -- liftA2 Person (nameOkay name) (ageOkay age)
 
 mkPerson'' :: ValidatePerson Name -> ValidatePerson Age -> ValidatePerson Person
 mkPerson'' (Right nameOk) (Right ageOk) = Right (Person nameOk ageOk)
