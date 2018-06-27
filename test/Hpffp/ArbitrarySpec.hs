@@ -1,5 +1,6 @@
 module Hpffp.ArbitrarySpec where
 
+import Test.Hspec
 import Test.QuickCheck
 
 data Trivial =
@@ -30,7 +31,13 @@ instance Arbitrary a =>
 identityGenInt :: Gen (Identity Int)
 identityGenInt = identityGen
 
-main :: IO ()
-main = do
-    sample trivialGen
-    sample identityGenInt
+{- main :: IO () -}
+{- main = do -}
+    {- sample trivialGen -}
+    {- sample identityGenInt -}
+
+spec :: Spec
+spec = do
+    describe "Arbitrary" $ do
+        it "can create random items" $ do
+            pending
