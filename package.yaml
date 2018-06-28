@@ -47,4 +47,5 @@ tests:
     dependencies:
     - hspec == 2.*
     - QuickCheck
+    - primes
     - hpffp
