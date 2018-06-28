@@ -4,6 +4,7 @@ import Test.Hspec
 import Test.QuickCheck
 import Data.Numbers.Primes
 import Data.List (sort)
+import Data.Char (toUpper)
 
 half :: (Fractional a) => a -> a
 half x = x / 2
@@ -69,11 +70,11 @@ prop_listOrdered =
 
 -- Addition
 
-associative :: (Num a, Eq a) => a -> a -> a -> Bool
-associative x y z = x + (y + z) == (x + y) + z
+associative :: (Eq a) => (a -> a -> a) -> a -> a -> a -> Bool
+associative f x y z = x `f` (y `f` z) == (x `f` y) `f` z
 
-commutative :: (Num a, Eq a) => a -> a -> Bool
-commutative x y = x + y == y + x
+commutative :: (Eq a) => (a -> a -> a) -> a -> a -> Bool
+commutative f x y = x `f` y == y `f` x
 
 genTuple :: (Arbitrary a, Arbitrary b) => Gen (a, b)
 genTuple = arbitrary
@@ -81,16 +82,111 @@ genTuple = arbitrary
 genThreeple :: (Arbitrary a, Arbitrary b, Arbitrary c) => Gen (a, b, c)
 genThreeple = arbitrary
 
+untrurry :: (a -> b -> c -> d) -> ((a, b, c) -> d)
+untrurry f (a, b, c) = f a b c
+
 prop_plusAssoc :: Property
 prop_plusAssoc =
     forAll (genThreeple :: Gen (Int, Int, Int))
-    (\(x, y, z) -> associative x y z)
+    (untrurry $ associative (+))
 
 prop_plusCommutative :: Property
 prop_plusCommutative =
     forAll (genTuple :: Gen (Int, Int))
-    (\(x, y) -> commutative x y)
+    (uncurry $ commutative (+))
 
+-- multiplication
+prop_timesAssoc :: Property
+prop_timesAssoc =
+    forAll (genThreeple :: Gen (Int, Int, Int))
+    (untrurry $ associative (*))
+
+prop_timesCommutative :: Property
+prop_timesCommutative =
+    forAll (genTuple :: Gen (Int, Int))
+    (uncurry $ associative (*))
+
+-- ^
+genTuplePos :: (Arbitrary a, Num a, Ord a) => Gen (a, a)
+genTuplePos = do
+    x <- arbitrary `suchThat` (>1)
+    y <- arbitrary `suchThat` (>1)
+    return (x, y)
+
+genThreeplePos :: (Arbitrary a, Num a, Ord a) => Gen (a, a, a)
+genThreeplePos = do
+    x <- arbitrary `suchThat` (>1)
+    y <- arbitrary `suchThat` (>1)
+    z <- arbitrary `suchThat` (>1)
+    return (x, y, z)
+
+-- evauluates to false
+prop_hatAssoc :: Property
+prop_hatAssoc =
+    forAll (genThreeplePos :: Gen (Int, Int, Int))
+    (untrurry $ associative (^))
+
+divisor :: Gen Float
+divisor = arbitrary `suchThat` (/= 0)
+
+prop_dollar :: Property
+prop_dollar =
+    forAll divisor
+    (\x -> ((-) x $ x + x) == (-) x (x + x))
+
+-- List function
+prop_concat :: Property
+prop_concat =
+    forAll (genTuple :: Gen ([Int], [Int]))
+    (\(x, y) -> foldr (++) [] [x, y] == concat [x, y])
+
+prop_concat' :: Property
+prop_concat' =
+    forAll (genTuple :: Gen ([Int], [Int]))
+    (\(x, y) -> foldr (:) y x == (++) x y)
+
+-- Check length
+prop_lengthTake :: Property
+prop_lengthTake =
+    forAll (genTuple :: Gen (Int, [Int]))
+    (\(n, xs) -> length (take n xs) == n)
+
+-- Show/Read
+prop_showRead :: Property
+prop_showRead =
+    forAll (genList :: Gen String)
+    (\x -> (read (show x)) == x)
+
+twice f = f . f
+fourTimes = twice . twice
+
+capitalizeWord :: String -> String
+capitalizeWord = map toUpper
+
+prop_capitalizeWord :: Property
+prop_capitalizeWord =
+    forAll (genList :: Gen String)
+    (\x -> capitalizeWord x == twice capitalizeWord x
+           &&
+           capitalizeWord x == fourTimes capitalizeWord x)
+
+prop_sort :: Property
+prop_sort =
+    forAll (genList :: Gen String)
+    (\x -> sort x == twice sort x
+           &&
+           sort x == fourTimes sort x)
+
+data Fool =
+        Fulse
+      | Frue
+      deriving (Eq, Show)
+
+genFool :: Gen Fool
+genFool = elements [Fulse, Frue]
+
+genUnfair :: Gen Fool
+genUnfair = elements [Fulse, Fulse, Frue]
 
 spec :: Spec
 spec = do
@@ -100,6 +196,15 @@ spec = do
         it "can reverse and reverse list" $ property prop_RevRev
         it "can verify a property of a list" $ property prop_Index_v3
         it "verifies an ordered list" $ property prop_listOrdered
-        it "verifies associative function" $ property prop_plusAssoc
-        it "verifies associative function" $ property prop_plusCommutative
+        it "verifies associative plus function" $ property prop_plusAssoc
+        it "verifies commutative plus function" $ property prop_plusCommutative
+        it "verifies associative multiplies function" $ property prop_timesAssoc
+        it "verifies commutative multiplies function" $ property prop_timesCommutative
+        it "verifies logic for $ function" $ property prop_dollar
+        it "verifies list concat function" $ property prop_concat
+        it "verifies list concat function" $ property prop_concat'
+        it "verifies show and read" $ property prop_showRead
+        it "can capitalize words a couple of times" $ property prop_capitalizeWord
+        it "can sort words a couple of times" $ property prop_sort
+        -- it "verifies list length" $ property prop_lengthTake -- No...
         -- it "can verify prime numbers" $ property prop_PrimeSum_v4
