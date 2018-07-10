@@ -19,6 +19,72 @@ instance Monoid a => Monoid (Optional a) where
     mappend (Only x) Nada = Only x
     mappend (Only x) (Only y) = Only (x `mappend` y)
 
+-- sample (genOnly :: Gen (Optional String))
+genOnly :: Arbitrary a => Gen (Optional a)
+genOnly = do
+  x <- arbitrary
+  return $ Only x
+
+instance Arbitrary a => Arbitrary (Optional a) where
+  arbitrary =
+    frequency [ (1, genOnly)
+              , (1, return Nada) ]
+
+newtype First' a =
+    First' { getFirst' :: Optional a }
+    deriving (Eq, Show)
+
+instance Monoid (First' a) where
+    mempty = First' Nada
+    mappend (First' Nada) (First' Nada) = First' Nada
+    mappend (First' Nada) (First' (Only x)) = First' (Only x)
+    mappend (First' (Only x)) (First' Nada) = First' (Only x)
+    mappend (First' (Only x)) (First' (Only _)) = First' (Only x)
+
+firstMappend :: First' a -> First' a -> First' a
+firstMappend = mappend
+
+type FirstMappend = First' String
+                 -> First' String
+                 -> First' String
+                 -> Bool
+
+genFirst :: Arbitrary a => Gen (First' a)
+genFirst = do
+    x <- arbitrary
+    return (First' { getFirst' = x })
+
+instance Arbitrary a => Arbitrary (First' a) where
+    arbitrary = genFirst
+
+data Bull =
+      Fools
+    | Twoo
+    deriving (Eq, Show)
+
+instance Arbitrary Bull where
+    arbitrary =
+        frequency [ (1, return Fools)
+                  , (1, return Twoo) ]
+
+instance Monoid Bull where
+    mempty = Fools
+    mappend _ _ = Fools
+
+type BullMappend =
+    Bull -> Bull -> Bull -> Bool
+
+monoidAssoc :: (Eq m, Monoid m)
+    => m -> m -> m -> Bool
+monoidAssoc a b c =
+    (a <> (b <> c)) == ((a <> b) <> c)
+
+monoidLeftIdentity :: (Eq m, Monoid m) => m -> Bool
+monoidLeftIdentity a = (mempty <> a) == a
+
+monoidRightIdentity :: (Eq m, Monoid m) => m -> Bool
+monoidRightIdentity a = (a <> mempty) == a
+
 spec :: Spec
 spec = do
     describe "Number Monoids" $ do
@@ -89,3 +155,22 @@ spec = do
             map (*1) myList `shouldBe` myList
         it "can't use 1 for identity for addition" $
             map (+1) myList `shouldNotBe` myList
+    describe "Monoids with QuickCheck" $ do
+        it "is associative for addition" $ property $
+            \a b c -> a + (b + c) == (a + b) + (c :: Integer)
+        it "is associative for monoids" $ property $ 
+            (monoidAssoc :: String -> String -> String -> Bool)
+        it "checks for left Identity" $ property $ do
+            (monoidLeftIdentity :: String -> Bool)
+        it "checks for right Identity" $ property $ do
+            (monoidRightIdentity :: String -> Bool)
+    describe "Testing QuickCheck patience" $ do
+        let ma = (monoidAssoc :: BullMappend)
+            {- mli = (monoidLeftIdentity :: Bull -> Bool) -}
+            {- mlr = (monoidRightIdentity :: Bull -> Bool) -}
+        it "checks for mappend" $ property $ ma
+        {- it "checks for left identity" $ property $ mli -}
+    describe "Monoid examples" $ do
+        it "checks for associative" $ property $ (monoidAssoc :: FirstMappend)
+        it "checks for left identity" $ property $ (monoidLeftIdentity :: First' String -> Bool)
+        it "checks for right identity" $ property $ (monoidRightIdentity :: First' String -> Bool)
