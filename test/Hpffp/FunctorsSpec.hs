@@ -26,6 +26,40 @@ instance Functor CountingGood where
 replaceWithP :: a -> Char
 replaceWithP = const 'p'
 
+replaceWithP' :: [Maybe [Char]] -> Char
+replaceWithP' = replaceWithP
+
+liftedReplace :: Functor f => f a -> f Char
+liftedReplace = fmap replaceWithP
+
+liftedReplace' :: [Maybe [Char]] -> [Char]
+liftedReplace' = liftedReplace
+
+n :: Maybe String
+n = Nothing
+
+w :: Maybe String
+w = Just "woohoo"
+
+ave :: Maybe String
+ave = Just "Ave"
+
+lms :: [Maybe String]
+lms = [ave, n, w]
+
+twiceLifted :: (Functor f1, Functor f) => f (f1 a) -> f (f1 Char)
+twiceLifted = (fmap . fmap) replaceWithP
+
+twiceLifted' :: [Maybe [Char]] -> [Maybe Char]
+twiceLifted' = twiceLifted
+
+thriceLifted :: (Functor f2, Functor f1, Functor f)
+    => f (f1 (f2 a)) -> f (f1 (f2 Char))
+thriceLifted = (fmap . fmap . fmap) replaceWithP
+
+thriceLifted' :: [Maybe [Char]] -> [Maybe [Char]]
+thriceLifted' = thriceLifted
+
 spec :: Spec
 spec = do
     describe "Functors" $ do
@@ -53,10 +87,6 @@ spec = do
             tossEmOne 10 `shouldBe` -9
             tossEmOne (-10) `shouldBe` 11
     describe "Functors are stacked" $ do
-        let n = Nothing
-            w = Just "woohoo"
-            ave = Just "Ave"
-            lms = [ave, n, w]
         it "replaces lists" $ do
             replaceWithP lms `shouldBe` 'p'
             fmap replaceWithP lms `shouldBe` "ppp"
@@ -75,3 +105,19 @@ spec = do
                 `shouldBe` [Just "pp", Nothing, Just []]
             (fmap . fmap . fmap . fmap) replaceWithP lmls
                 `shouldBe` [Just ["pp","pp"], Nothing, Just []]
+    describe "More stacking" $ do
+        it "replaces with more specific P" $
+            replaceWithP' lms `shouldBe` 'p'
+        it "replaces with lift" $ do
+            liftedReplace lms `shouldBe` "ppp"
+        it "replaces with more specific typed function" $ do
+            liftedReplace' lms `shouldBe` "ppp"
+        it "replaces with twiceLifted" $ do
+            twiceLifted lms `shouldBe` [Just 'p', Nothing, Just 'p']
+        it "replaces with twiceLifted'" $ do
+            twiceLifted' lms `shouldBe` [Just 'p', Nothing, Just 'p']
+        it "replaces with thriceLifted" $ do
+            thriceLifted lms `shouldBe` [Just "ppp", Nothing, Just "pppppp"]
+        it "replaces with thriceLifted'" $ do
+            thriceLifted' lms `shouldBe` [Just "ppp", Nothing, Just "pppppp"]
+
