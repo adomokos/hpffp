@@ -60,6 +60,12 @@ thriceLifted = (fmap . fmap . fmap) replaceWithP
 thriceLifted' :: [Maybe [Char]] -> [Maybe [Char]]
 thriceLifted' = thriceLifted
 
+e :: IO Integer
+e = let ioi = readIO "1" :: IO Integer
+        changed = fmap ((\x -> read x :: Integer) . ("123"++) . show) ioi
+     in fmap (*3) changed
+
+
 spec :: Spec
 spec = do
     describe "Functors" $ do
@@ -120,4 +126,16 @@ spec = do
             thriceLifted lms `shouldBe` [Just "ppp", Nothing, Just "pppppp"]
         it "replaces with thriceLifted'" $ do
             thriceLifted' lms `shouldBe` [Just "ppp", Nothing, Just "pppppp"]
+    describe "Exercises" $ do
+        it "evaluates the expressions" $ do
+            let a = head (fmap (+1) $ read "[1]" :: [Int])
+            a `shouldBe` 2
+            let b = (fmap . fmap) (++ "lol") (Just ["Hi,", "Hello"])
+            b `shouldBe` Just ["Hi,lol","Hellolol"]
+            let c = fmap (*2) (\x -> x - 2)
+            c 1 `shouldBe` -2
+            let d = fmap ((return '1' ++) . show) (\x -> [x, 1..3])
+            d 0 `shouldBe` "1[0,1,2,3]"
+            result <- e
+            result `shouldBe` 3693
 
