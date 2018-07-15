@@ -14,8 +14,39 @@ main = hspec spec
     (<*>) :: f (a -> b) -> f a -> f b
 -}
 
+f x =
+    lookup x [ (3, "hello")
+             , (4, "julie")
+             , (5, "kbai")]
+
+g y =
+    lookup y [ (7, "sup?")
+             , (8, "chris")
+             , (9, "aloha")]
+
+h z =
+    lookup z [(2,3), (5,6), (7,8)]
+m x =
+    lookup x [(4,10), (8,13), (1, 9001)]
+
 spec :: Spec
 spec = do
+    describe "helps with Map lookup" $ do
+        it "finds values with tie-fighter" $ do
+            f 3 `shouldBe` Just "hello"
+            g 8 `shouldBe` Just "chris"
+            (++) <$> f 3 <*> g 7
+                `shouldBe` Just "hellosup?"
+            (+) <$> h 5 <*> m 1
+                `shouldBe` Just 9007
+            (+) <$> h 5 <*> m 6 `shouldBe` Nothing
+        it "finds values with liftA2" $ do
+            liftA2 (++) (g 9) (f 4)
+                `shouldBe` Just "alohajulie"
+            liftA2 (^) (h 5) (m 4)
+                `shouldBe` Just 60466176
+            liftA2 (*) (h 5) (m 4) `shouldBe` Just 60
+            liftA2 (*) (h 1) (m 1) `shouldBe` Nothing
     describe "Applicatives" $ do
         it "is a layer on top of Functors" $ do
             fmap (+1) [1..3] `shouldBe` [2..4]
@@ -62,4 +93,3 @@ spec = do
             let c (x:xs) = toUpper x:xs
             fmap c l `shouldBe` Just "Hello"
             fmap length l `shouldBe` Just 5
-
