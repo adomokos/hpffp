@@ -15,6 +15,8 @@ main = hspec spec
     (<*>) :: f (a -> b) -> f a -> f b
 -}
 
+type Id = Identity
+
 f x =
     lookup x [ (3, "hello")
              , (4, "julie")
@@ -74,6 +76,15 @@ y'' = lookup 2 $ zip xs ys
 summed :: Maybe Integer
 summed = fmap sum $ (,) <$> x'' <*> y''
 
+newtype Identity a = Identity a
+    deriving (Eq, Ord, Show)
+
+instance Functor Identity where
+    fmap f (Identity x) = Identity (f x)
+
+instance Applicative Identity where
+    pure = Identity
+    Identity f <*> Identity x = Identity (f x)
 
 spec :: Spec
 spec = do
@@ -144,3 +155,12 @@ spec = do
             added `shouldBe` Just 9
             tupled `shouldBe` Just (6,5)
             maxed `shouldBe` Just 3
+    describe "Identity" $ do
+        it "provides a thin wrapper context" $ do
+            let xs = [1,2,3]
+                ys = [9,9,9]
+            const <$> xs <*> ys
+                `shouldBe` [1,1,1,2,2,2,3,3,3]
+            let mkId = Identity
+            const <$> mkId xs <*> mkId ys
+                `shouldBe` Identity [1,2,3]
