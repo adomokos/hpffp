@@ -86,6 +86,17 @@ instance Applicative Identity where
     pure = Identity
     Identity f <*> Identity x = Identity (f x)
 
+newtype Constant a b =
+    Constant { getConstant :: a }
+    deriving (Eq, Ord, Show)
+
+instance Functor (Constant a) where
+    fmap f (Constant x) = Constant x
+
+instance Monoid a => Applicative (Constant a) where
+    pure _ = Constant mempty
+    a <*> a' = Constant (getConstant a <> getConstant a')
+
 spec :: Spec
 spec = do
     describe "helps with Map lookup" $ do
@@ -164,3 +175,8 @@ spec = do
             let mkId = Identity
             const <$> mkId xs <*> mkId ys
                 `shouldBe` Identity [1,2,3]
+    describe "Constant" $ do
+        it "provides a thin wrapper context" $ do
+            let f = Constant (Sum 1)
+                g = Constant (Sum 2)
+            f <*> g `shouldBe` Constant (Sum 3)
