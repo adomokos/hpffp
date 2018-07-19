@@ -50,3 +50,4 @@ tests:
     - primes
     - hpffp
     - checkers
+    - hspec-checkers
