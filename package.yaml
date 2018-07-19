@@ -49,3 +49,4 @@ tests:
     - QuickCheck
     - primes
     - hpffp
+    - checkers
