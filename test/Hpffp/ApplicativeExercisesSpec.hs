@@ -105,6 +105,37 @@ genList = do
     frequency [(3, return $ Cons h t),
                (1, return Nil)]
 
+newtype ZipList' a = ZipList' (List a) deriving (Eq, Show)
+
+instance Eq a => EqProp (ZipList' a) where
+    xs =-= ys = xs' `eq` ys'
+        where xs' = let (ZipList' l) = xs
+                    in take' 3000 l
+              ys' = let (ZipList' l) = ys
+                    in take' 3000 l
+
+instance Functor ZipList' where
+    fmap f (ZipList' xs) = ZipList' $ fmap f xs
+
+instance Applicative ZipList' where
+    pure x = ZipList' (Cons x Nil)
+    _ <*> ZipList' Nil = ZipList' Nil
+    ZipList' Nil <*> _ = ZipList' Nil
+    ZipList' (Cons f Nil) <*> ZipList' (Cons x xs) =
+        ZipList' $ Cons (f x) (pure f <*> xs)
+    ZipList' (Cons f fs) <*> ZipList' (Cons x Nil) =
+        ZipList' $ Cons (f x) (fs <*> pure x )
+    ZipList' (Cons f fs) <*> ZipList' (Cons x xs) =
+        ZipList' $ Cons (f x) (fs <*> xs)
+
+instance Arbitrary a => Arbitrary (ZipList' a) where
+    arbitrary = genZipList
+
+genZipList :: Arbitrary a => Gen (ZipList' a)
+genZipList = do
+    l <- arbitrary
+    return $ ZipList' l
+
 spec :: Spec
 spec = do
     describe "ZipList Monoid" $ do
@@ -122,3 +153,4 @@ spec = do
             let result = fmap (\x -> [x, 9]) [1,2,3]
             result `shouldBe` [[1,9],[2,9],[3,9]]
         testBatch (monoid (undefined :: [Int]))
+        testBatch (applicative $ ZipList' (Cons (undefined :: (Bool, Bool, Bool))Nil ))
