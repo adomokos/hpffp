@@ -6,6 +6,7 @@ import Test.QuickCheck
 import Test.QuickCheck.Checkers
 import Test.QuickCheck.Classes
 import Data.Monoid
+import Control.Applicative (liftA2)
 
 main :: IO ()
 main = hspec spec
@@ -131,6 +132,30 @@ genList = do
 instance Eq a => EqProp (List a) where
     (=-=) = eq
 
+-- Functions
+
+j :: Monad m => m (m a) -> m a
+j = (=<<) id
+
+l1 :: Monad m => (a -> b) -> m a -> m b
+l1 = fmap
+
+l2 :: Monad m => (a -> b -> c) -> m a -> m b -> m c
+l2 = liftA2
+
+a :: Monad m => m a -> m (a -> b) -> m b
+a = flip (<*>)
+
+-- Needs recursion
+meh :: Monad m => [a] -> (a -> m b) -> m [b]
+meh [] _ = return []
+meh (x:xs) f = do
+    x' <- f x
+    fmap ((:) x') (meh xs f)
+
+flipType :: (Monad m) => [m a] -> m [a]
+flipType = (flip meh) id
+
 -- Just an abbreviation
 
 type I = Int
@@ -162,4 +187,19 @@ spec = do
             testBatch $ functor subject
             testBatch $ applicative subject
             testBatch $ monad subject
-
+        describe "Functions" $ do
+            it "lifts" $ do
+                j [[1,2], [], [3]]
+                    `shouldBe` [1,2,3]
+                j (Just (Just 1)) `shouldBe` Just 1
+                j ((Just Nothing) :: Maybe (Maybe I)) `shouldBe` Nothing
+                j (Nothing :: Maybe (Maybe I)) `shouldBe` Nothing
+                l1 (+1) (Just 2) `shouldBe` Just 3
+                l1 (+1) Nothing `shouldBe` Nothing
+                l2 (+) (Just 2) (Just 3) `shouldBe` Just 5
+                l2 (+) Nothing (Just 3) `shouldBe` Nothing
+                a (Just 2) (Just (+3)) `shouldBe` Just 5
+                a Nothing (Just (+3)) `shouldBe` Nothing
+                a (Just 2) Nothing `shouldBe` (Nothing :: Maybe Int)
+                meh [1..3] (\x -> (Just x)) `shouldBe` Just [1..3]
+                meh [] (\x -> (Just x)) `shouldBe` (Just [] :: Maybe [Int])
