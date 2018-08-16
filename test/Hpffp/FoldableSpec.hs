@@ -1,4 +1,4 @@
-module Hpffp.MonoidsSpec where
+module Hpffp.FoldableSpec where
 
 import Test.Hspec
 import Data.Foldable
