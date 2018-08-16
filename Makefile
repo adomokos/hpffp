@@ -15,6 +15,11 @@ repl: ## Run a REPL for development
 
 test-repl: ## Load the test libraries in the Repl
 	stack ghci --test
+.PHONY: test-repl
+
+test: ## Run the specs
+	time stack --no-terminal test --test-arguments=--format=progress
+.PHONY: test
 
 run: ## Run the program
 	@stack build
