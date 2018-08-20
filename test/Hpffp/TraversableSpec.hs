@@ -1,9 +1,11 @@
-module Hpffp.FoldableSpec where
+module Hpffp.TraversableSpec where
 
 import Test.Hspec
 import Data.Foldable
 import Data.Monoid
 import Data.Maybe
+import Data.Functor.Identity
+import Data.Functor.Constant
 
 main :: IO ()
 main = hspec spec
@@ -64,3 +66,15 @@ spec = do
             (sequence . fmap Just) [1,2,3]
                 `shouldBe` Just [1,2,3]
             traverse Just [1,2,3] `shouldBe` Just [1,2,3]
+        it "is stronger than Functor and Foldable" $ do
+            traverse (Identity . (+1)) [1,2]
+                `shouldBe` Identity [2,3]
+            runIdentity (traverse (Identity . (+1)) [1,2])
+                `shouldBe` [2,3]
+            let edgeMap f t = runIdentity (traverse (Identity . f) t)
+            edgeMap (+1) [1..5] `shouldBe` [2..6]
+        it "can act as fold with Const or Constant" $ do
+            let xs = [1,2,3,4,5] :: [Sum Integer]
+            traverse (Constant . (+1)) xs
+                `shouldBe` Constant (Sum 20)
+

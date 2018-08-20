@@ -51,3 +51,4 @@ tests:
     - hpffp
     - checkers
     - hspec-checkers
+    - transformers
