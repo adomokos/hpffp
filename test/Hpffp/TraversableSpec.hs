@@ -32,7 +32,7 @@ main = hspec spec
 spec :: Spec
 spec = do
     describe "Traversable" $ do
-        it "traverse various data structures" $ do
+        it "traverses various data structures" $ do
             -- compare
             sum [1,2,3] `shouldBe` 6
             fmap sum [Just 1, Just 2, Just 3]
