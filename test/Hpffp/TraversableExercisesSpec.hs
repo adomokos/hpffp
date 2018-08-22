@@ -224,6 +224,22 @@ instance Functor Tree where
     fmap f (Leaf x) = Leaf (f x)
     fmap f (Node n x n') = Node (fmap f n) (f x) (fmap f n')
 
+instance Foldable Tree where
+    foldMap _ Empty = mempty
+    foldMap f (Leaf x) = f x
+    foldMap f (Node n x n') =
+        foldMap f n `mappend` f x `mappend` foldMap f n'
+
+    foldr _ y Empty = y
+    foldr f y (Leaf x) = f x y
+    foldr f y (Node l x r) = f x $ foldr f (foldr f y r) l
+
+instance Traversable Tree where
+    traverse _ Empty = pure Empty
+    traverse f (Leaf x) = Leaf <$> f x
+    traverse f (Node n x n') =
+        Node <$> traverse f n <*> f x <*> traverse f n'
+
 -- for testing
 
 instance Eq a => EqProp (Tree a) where
@@ -286,3 +302,4 @@ spec = do
             let subject :: Tree (Int, Int, [Int])
                 subject = undefined
             testBatch $ functor subject
+            testBatch $ traversable subject
