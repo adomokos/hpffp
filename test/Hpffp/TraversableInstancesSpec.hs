@@ -1,6 +1,11 @@
 module Hpffp.TraversableInstancesSpec where
 
 import Test.Hspec
+import Test.Hspec.Checkers
+import Test.QuickCheck
+import Test.QuickCheck.Checkers
+import Test.QuickCheck.Classes
+
 import Data.Foldable
 import Data.Monoid
 
@@ -32,6 +37,9 @@ instance Traversable (TEither a) where
     traverse _ (TLeft x) = pure (TLeft x)
     traverse f (TRight y) = TRight <$> f y
 
+-- Used for checkers demo
+type TI = []
+
 spec :: Spec
 spec = do
     describe "Traversable Instances - Either" $ do
@@ -55,3 +63,7 @@ spec = do
                 `shouldBe` [TLeft 3]
             traverse (++"!") (TRight "Yo" :: TEither Int String)
                 `shouldBe` [TRight 'Y', TRight 'o', TRight '!']
+    describe "can be verified with checkers" $ do
+        let trigger :: TI (Int, Int, [Int])
+            trigger = undefined
+        testBatch $ traversable trigger
