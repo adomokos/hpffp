@@ -1,6 +1,9 @@
+{-# LANGUAGE InstanceSigs #-}
+
 module Hpffp.MonadOfFunctionsSpec where
 
 import Test.Hspec
+import Control.Monad (join)
 
 main :: IO ()
 main = hspec spec
@@ -33,7 +36,40 @@ fooBind m k = \r -> k (m r) r
 (>>=) :: Monad m =>
      m     a -> (a -> (m    b)) ->  m    b
     (r -> a) -> (a -> (r -> b)) -> (r -> b)
+
+return :: Monad m => a ->      m a
+return ::            a -> (->) r a
+return ::            a ->   r -> a
+
+-- Look at it side by side with the Applicative:
+(<*>) :: (r -> a -> b) -> (r -> a) -> (r -> b)
+(>>=) :: (r -> a) -> (a -> r -> b) -> (r -> b)
+
+-- or with the flipped bind
+(<*>) :: (r -> a -> b) -> (r -> a) -> (r -> b)
+(=<<) :: (a -> r -> b) -> (r -> a) -> (r -> b)
 -}
+
+newtype Reader r a =
+    Reader { runReader :: r -> a }
+
+instance Functor (Reader a) where
+  fmap f (Reader x) =
+    Reader $ f . x
+
+instance Applicative (Reader r) where
+  pure a = Reader (\r -> a)
+  Reader f <*> Reader g =
+      Reader (\r -> f r (g r))
+
+instance Monad (Reader r) where
+    return = pure
+
+    (>>=) :: Reader r a
+          -> (a -> Reader r b)
+          -> Reader r b
+    (Reader ra) >>= aRb =
+        join $ Reader $ \r -> aRb (ra r)
 
 spec :: Spec
 spec = do

@@ -179,6 +179,9 @@ getDogRM = do
     addy <- address
     return $ Dog name addy
 
+getDogR''' :: Reader Person Dog
+getDogR''' = Dog <$> Reader dogName <*> Reader address
+
 {-
     liftA2 :: Applicative f => (a -> b -> c) -> f a -> f b -> f c
 -}
@@ -257,3 +260,4 @@ spec = do
         it "works for function" $ do
             let dog = Dog (DogName "Barkley") (Address "Sesame Street")
             getDogRM pers `shouldBe` dog
+            runReader (getDogR''') pers `shouldBe` dog
