@@ -1,7 +1,10 @@
+{-# LANGUAGE InstanceSigs #-}
+
 module Hpffp.ReaderSpec where
 
 import Test.Hspec
 import Control.Applicative (liftA2)
+import Control.Monad (join)
 import Data.Char
 
 main :: IO ()
@@ -96,11 +99,13 @@ tupled''' = (,) =<< rev <$> cap
 newtype Reader r a =
     Reader { runReader :: r -> a }
 
+{-
 instance Functor (Reader r) where
     {- fmap :: (a -> b) -}
          {- -> Reader r a -}
          {- -> Reader r b -}
     fmap f (Reader ra) = Reader $ \r -> f (ra r)
+-}
 
 -- same as (.)
 compose :: (b -> c) -> (a -> b) -> (a -> c)
@@ -168,6 +173,12 @@ getDogR' = Dog <$->> dogName <*> address
 getDogR'' :: Person -> Dog
 getDogR'' = liftA2 Dog dogName address
 
+getDogRM :: Person -> Dog
+getDogRM = do
+    name <- dogName
+    addy <- address
+    return $ Dog name addy
+
 {-
     liftA2 :: Applicative f => (a -> b -> c) -> f a -> f b -> f c
 -}
@@ -183,6 +194,23 @@ myLiftA2 f x y = f <$> x <*> y
 
 asks :: (r -> a) -> Reader r a
 asks f = Reader f
+
+instance Functor (Reader a) where
+    fmap f (Reader x) = Reader $ f . x
+
+instance Applicative (Reader r) where
+    pure a = Reader (\r -> a)
+    Reader f <*> Reader g =
+        Reader (\r -> f r (g r))
+
+instance Monad (Reader r) where
+    return = pure
+
+    (>>=) :: Reader r a
+          -> (a -> Reader r b)
+          -> (Reader r b)
+    (Reader ra) >>= aRb =
+        join $ Reader $ \r -> aRb (ra r)
 
 spec :: Spec
 spec = do
@@ -225,3 +253,7 @@ spec = do
             (myLiftA2 Dog dogName address) pers `shouldBe` dog
         it "works with asks" $ do
             runReader (asks (+2)) 3 `shouldBe` 5
+    describe "Reader monad" $ do
+        it "works for function" $ do
+            let dog = Dog (DogName "Barkley") (Address "Sesame Street")
+            getDogRM pers `shouldBe` dog
