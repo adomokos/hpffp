@@ -2,6 +2,7 @@ module Hpffp.ReaderSpec where
 
 import Test.Hspec
 import Control.Applicative (liftA2)
+import Data.Char
 
 main :: IO ()
 main = hspec spec
@@ -32,6 +33,34 @@ boopDoop = do
     b <- doop
     return (a + b)
 
+-- Exercises
+cap :: [Char] -> [Char]
+cap = map toUpper
+
+rev :: [Char] -> [Char]
+rev = reverse
+
+composed :: [Char] -> [Char]
+composed = rev . cap
+
+fmapped :: [Char] -> [Char]
+fmapped = fmap cap reverse
+
+tupled :: [Char] -> ([Char], [Char])
+tupled = liftA2 (,) cap rev
+
+tupled' :: [Char] -> ([Char], [Char])
+tupled' = (,) <$> rev <*> cap
+
+tupled'' :: [Char] -> ([Char], [Char])
+tupled'' = do
+    x <- rev
+    y <- cap
+    return (x, y)
+
+tupled''' :: [Char] -> ([Char], [Char])
+tupled''' = (,) =<< rev <$> cap
+
 spec :: Spec
 spec = do
     describe "Functions" $ do
@@ -43,3 +72,10 @@ spec = do
             duwop 3 `shouldBe` 19
             ((+) <$> (*2) <*> (+10)) 3 `shouldBe` 19
             boopDoop 3 `shouldBe` 19
+        it "works with Strings" $ do
+            composed "Julie" `shouldBe` "EILUJ"
+            fmapped "Chris" `shouldBe` "SIRHC"
+            tupled "Julie" `shouldBe` ("JULIE", "eiluJ")
+            tupled' "Julie" `shouldBe` ("eiluJ", "JULIE")
+            tupled'' "Julie" `shouldBe` ("eiluJ", "JULIE")
+            tupled''' "Julie" `shouldBe` ("EILUJ", "Julie")
