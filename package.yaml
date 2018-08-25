@@ -53,3 +53,4 @@ tests:
     - hspec-checkers
     - transformers
     - random
+    - dlist
