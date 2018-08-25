@@ -52,3 +52,4 @@ tests:
     - checkers
     - hspec-checkers
     - transformers
+    - random
