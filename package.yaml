@@ -54,3 +54,5 @@ tests:
     - transformers
     - random
     - dlist
+    - trifecta
+    - parsers

@@ -1,0 +1,35 @@
+module Hpffp.ParserIntroSpec where
+
+import Test.Hspec
+import Text.Trifecta
+import Text.Parser.Combinators
+
+main :: IO ()
+main = hspec spec
+
+stop :: Parser a
+stop = unexpected "stop"
+
+one :: Parser Char
+one = char '1'
+
+two :: Parser Char
+two = char '2'
+
+three :: Parser Char
+three = char '3'
+
+one' = one >> stop
+
+-- read two characters, '1', and '2'
+oneTwo = char '1' >> char '2'
+
+-- read two characters, '1' and '2', then die
+oneTwo' = oneTwo >> stop
+
+spec :: Spec
+spec = do
+    describe "StateT refresher" $ do
+        it "uses get and put" $ do
+            parseSring one mempty "123" `shouldBe` Success '1'
+            -- parseString p mempty "123" `shouldBe` '1'
