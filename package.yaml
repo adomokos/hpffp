@@ -58,3 +58,5 @@ tests:
     - parsers
     - bytestring
     - raw-strings-qq
+    - text
+    - containers
