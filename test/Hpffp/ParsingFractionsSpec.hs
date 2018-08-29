@@ -44,7 +44,12 @@ b = "123"
 c = "123blah789"
 
 parseNos :: Parser NumberOrString
-parseNos = (Left <$> integer) <|> (Right <$> some letter)
+parseNos = do
+    skipMany (oneOf "\n")
+    v <- (Left <$> integer)
+     <|> (Right <$> some letter)
+    skipMany (oneOf "\n")
+    return v
 
 eitherOr :: String
 eitherOr = [r|
@@ -83,4 +88,9 @@ spec = do
             p integer b `shouldBe` Success 123
         it "works with Quasi Quotes" $ do
             let p f i = parseString f mempty i
-            show(p parseNos eitherOr) `shouldStartWith` "Failure"
+            p parseNos eitherOr `shouldBe` Success (Left 123)
+            parseString (some (token parseNos)) mempty eitherOr
+                `shouldBe` Success [Left 123,
+                                    Right "abc",
+                                    Left 456,
+                                    Right "def"]
