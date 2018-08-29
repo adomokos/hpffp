@@ -57,3 +57,4 @@ tests:
     - trifecta
     - parsers
     - bytestring
+    - raw-strings-qq

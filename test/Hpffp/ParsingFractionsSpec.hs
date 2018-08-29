@@ -1,10 +1,12 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes #-}
 module Hpffp.ParsingFractionsSpec where
 
 import Test.Hspec
 import Control.Applicative
 import Data.Ratio ((%))
 import Text.Trifecta
+import Text.RawString.QQ
 
 main :: IO ()
 main = hspec spec
@@ -44,6 +46,14 @@ c = "123blah789"
 parseNos :: Parser NumberOrString
 parseNos = (Left <$> integer) <|> (Right <$> some letter)
 
+eitherOr :: String
+eitherOr = [r|
+123
+abc
+456
+def
+|]
+
 spec :: Spec
 spec = do
     describe "Parsing" $ do
@@ -71,3 +81,6 @@ spec = do
             let p f i = parseString f mempty i
             p (some letter) a `shouldBe` Success "blah"
             p integer b `shouldBe` Success 123
+        it "works with Quasi Quotes" $ do
+            let p f i = parseString f mempty i
+            show(p parseNos eitherOr) `shouldStartWith` "Failure"
