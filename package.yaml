@@ -60,3 +60,4 @@ tests:
     - raw-strings-qq
     - text
     - containers
+    - attoparsec
