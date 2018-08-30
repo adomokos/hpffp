@@ -35,7 +35,7 @@ parseFraction = do
 
 spec :: Spec
 spec = do
-    describe "Parsing a config " $ do
+    describe "Polymorphic parsing" $ do
         it "parses with Attoparsec" $ do
             let attoP = parseOnly parseFraction
                 (Left x) = attoP badFraction
