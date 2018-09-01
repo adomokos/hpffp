@@ -62,3 +62,4 @@ tests:
     - containers
     - attoparsec
     - parsec
+    - aeson
