@@ -63,3 +63,4 @@ tests:
     - attoparsec
     - parsec
     - aeson
+    - scientific
