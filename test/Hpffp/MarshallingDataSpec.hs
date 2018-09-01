@@ -10,6 +10,7 @@ import qualified Data.ByteString.Lazy as LBS
 import qualified Data.Text as T
 import Data.Text (Text)
 import Text.RawString.QQ
+import Data.Scientific (floatingOrInteger)
 
 sectionJson :: LBS.ByteString
 sectionJson = [r|
@@ -55,13 +56,35 @@ instance FromJSON Color where
     parseJSON _ =
         fail "Expected an object for Color"
 
+data NumberOrString =
+    Numba Integer
+  | Stringy Text
+  deriving (Eq, Show)
+
+instance FromJSON NumberOrString where
+    parseJSON (Number i) =
+        case floatingOrInteger i of
+            (Left _) ->
+                fail "Must be integral number"
+            (Right integer) ->
+                return $ Numba integer
+    parseJSON (String s) = return $ Stringy s
+    parseJSON _ =
+        fail "NumberOrString must be number or string"
+
+dec :: LBS.ByteString -> Maybe NumberOrString
+dec = decode
+
+eitherDec :: LBS.ByteString -> Either String NumberOrString
+eitherDec = eitherDecode
+
 main :: IO ()
 main = hspec spec
 
 spec :: Spec
 spec = do
     describe "Marshalling Data" $ do
-        it "can deserialize string" $ do
+        it "can deserialize from string" $ do
             let color =
                     decode "{\"blue\": \"123\"}" :: Maybe Color
             color `shouldBe` Just (Blue "123")
@@ -73,3 +96,8 @@ spec = do
             let (Just d) =
                     decode sectionJson :: Maybe TestData
             section d `shouldBe` Host "wikipedia.org"
+    describe "Number or String" $ do
+        it "can deserialize from string" $ do
+            dec "blah" `shouldBe` Nothing
+            dec "\"blah\"" `shouldBe` Just (Stringy "blah")
+            dec "123" `shouldBe` Just (Numba 123)
