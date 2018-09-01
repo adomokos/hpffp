@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Hpffp.ParsingExercisesSpec where
+module Hpffp.ParsingSemVerSpec where
 
 import Test.Hspec
 import Data.Monoid ((<>))
