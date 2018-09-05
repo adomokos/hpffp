@@ -69,7 +69,7 @@ instance (Monad m)
    The basic pattern that many monad transformers are enabling
    us to cope with is the following type transitions,
    where m is the polymorphic, outer structure and T is some
-   concrete type the transformer is for. For example, in the 
+   concrete type the transformer is for. For example, in the
    above, T would be IdentityT:
    m (T m b) -> m (m b) -> m b -> T m b
 -}
