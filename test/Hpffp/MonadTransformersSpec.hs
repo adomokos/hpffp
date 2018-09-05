@@ -17,8 +17,8 @@ instance (Functor m)
 instance (Applicative m)
         => Applicative (MaybeT m) where
     pure x = MaybeT (pure (pure x))
-    (MaybeT mab) <*> (MaybeT mma) =
-        MaybeT $ fab <*> mma
+    (MaybeT fab) <*> (MaybeT mma) =
+        MaybeT $ (<*>) <$> fab <*> mma
 
 spec :: Spec
 spec = do
