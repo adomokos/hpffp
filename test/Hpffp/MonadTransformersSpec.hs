@@ -35,6 +35,21 @@ instance (Monad m)
                 Nothing -> return Nothing
                 Just y -> runMaybeT (f y)
 
+-- Exercise EitherT
+newtype EitherT e m a =
+    EitherT { runEitherT :: m (Either e a) }
+
+instance Functor m
+        => Functor (EitherT e m) where
+    fmap f (EitherT mea) =
+        EitherT $ (fmap . fmap) f mea
+
+instance Applicative m
+        => Applicative (EitherT e m) where
+    pure = undefined
+
+    f <*> a = undefined
+
 spec :: Spec
 spec = do
     describe "Monad transformers" $ do
@@ -46,7 +61,10 @@ spec = do
                 `shouldBe` [Just "No!",Nothing]
         it "can work with MaybeT Monads" $ do
             let x = MaybeT $ [(Just 2), Nothing]
-            -- (map . fmap) (*2) [Just 2, Nothing]
-            pending
-
-
+            let f = (\x -> return (x*2))
+            runMaybeT(x >>= f) `shouldBe`
+                [Just 4, Nothing]
+        it "can wok with EitherT Functors" $ do
+            let x = EitherT $ [Right 2, Left "OK"]
+            runEitherT (fmap (+1) x)
+                `shouldBe` [(Right 3:: Either String Int), Left "OK"]
