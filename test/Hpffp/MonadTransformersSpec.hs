@@ -2,6 +2,7 @@
 module Hpffp.MonadTransformersSpec where
 
 import Test.Hspec
+import Control.Monad.Trans.Class
 
 main :: IO ()
 main = hspec spec
@@ -46,9 +47,38 @@ instance Functor m
 
 instance Applicative m
         => Applicative (EitherT e m) where
-    pure = undefined
+    pure x = EitherT (pure (pure x))
+    EitherT fab <*> EitherT mma =
+        EitherT $ (<*>) <$> fab <*> mma
 
-    f <*> a = undefined
+instance Monad m => Monad (EitherT e m) where
+    return = pure
+
+    (>>=) :: EitherT e m a
+          -> (a -> EitherT e m b)
+          -> (EitherT e m b)
+    EitherT ma >>= f =
+        EitherT $ do
+        v <- ma
+        case v of 
+          Left e -> return $ Left e
+          Right a -> runEitherT (f a)
+
+swapEither :: Either e a -> Either a e
+swapEither x =
+    case x of
+      Left e -> Right e
+      Right a -> Left a
+
+swapEitherT :: (Functor m) => EitherT e m a -> EitherT a m e
+swapEitherT (EitherT x) = EitherT $ swapEither <$> x
+
+eitherT :: Monad m =>
+           (a -> m c)
+        -> (b -> m c)
+        -> EitherT a m b
+        -> m c
+eitherT fa fb (EitherT x) = x >>= either fa fb
 
 spec :: Spec
 spec = do
@@ -64,7 +94,19 @@ spec = do
             let f = (\x -> return (x*2))
             runMaybeT(x >>= f) `shouldBe`
                 [Just 4, Nothing]
-        it "can wok with EitherT Functors" $ do
+        it "can work with EitherT Functors" $ do
             let x = EitherT $ [Right 2, Left "OK"]
             runEitherT (fmap (+1) x)
                 `shouldBe` [(Right 3:: Either String Int), Left "OK"]
+        it "can work with EitherT Monad" $ do
+            let x = EitherT $ [Right 2, Left "OK"]
+            let f = (\x -> return (x*2))
+            runEitherT(x >>= f) `shouldBe`
+                [Right 4, Left "OK"]
+        it "can swap Either" $ do
+            let x = Right 2 :: (Either Int Int)
+            swapEither x `shouldBe` Left 2
+            let y = EitherT $ [Left 2, Right 4]
+            runEitherT(swapEitherT y) `shouldBe`
+                [Right 2, Left 4]
+
