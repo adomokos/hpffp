@@ -3,6 +3,8 @@ module Hpffp.MonadTransformersSpec where
 
 import Test.Hspec
 import Control.Monad.Trans.Class
+import Control.Applicative
+import Control.Monad
 
 main :: IO ()
 main = hspec spec
@@ -80,6 +82,28 @@ eitherT :: Monad m =>
         -> m c
 eitherT fa fb (EitherT x) = x >>= either fa fb
 
+{-
+    Sometimes fmap isn't always enough, we have some functions
+    that are essentially fmap for different context:
+
+    fmap :: Functor f
+         => (a -> b) -> f a -> f b
+
+    liftA :: Applicative f
+         => (a -> b) -> f a -> f b
+
+    liftM :: Monad m
+         => (a -> r) -> m a -> m r
+
+    :: The typesclass that lifts ::
+
+    class MonadTrans t where
+        --| Lift  a computation from
+        --  the argument monad to
+        --  the constructed monad.
+        lift :: (Monad m) => m a -> t m a
+-}
+
 spec :: Spec
 spec = do
     describe "Monad transformers" $ do
@@ -109,4 +133,9 @@ spec = do
             let y = EitherT $ [Left 2, Right 4]
             runEitherT(swapEitherT y) `shouldBe`
                 [Right 2, Left 4]
+    describe "Lifting" $ do
+        it "works with fmap" $ do
+            fmap (*2) (Just 2) `shouldBe` Just 4
+            liftA (*2) (Just 2) `shouldBe` Just 4
+            liftM (*2) (Just 2) `shouldBe` Just 4
 
