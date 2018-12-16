@@ -15,7 +15,7 @@ repl: ## Run a REPL for development
 .PHONY: repl
 
 repl-test: ## Run a REPL with tests
-	stack ghci hpffp:lib :hpffp-test
+	stack ghci hpffp:lib hpffp:test:hpffp-test
 .PHONY: repl-test
 
 run: ## Run Krypton locally
