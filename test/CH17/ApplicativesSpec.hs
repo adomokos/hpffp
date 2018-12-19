@@ -2,6 +2,7 @@ module CH17.ApplicativesSpec where
 
 import Test.Hspec
 import Control.Applicative
+import Data.Monoid
 
 main :: IO ()
 main = hspec spec
@@ -31,6 +32,34 @@ main = hspec spec
    ($)   ::   (a -> b) ->   a ->   b
    (<$>) ::   (a -> b) -> f a -> f b
    (<*>) :: f (a -> b) -> f a -> f b
+
+   Tuple monoid and Applicative side by side
+
+   instance (Monoid a, Monoid b) => Monoid (a,b) where
+     mempty = (mempty, mempty)
+     (a,b) `mappend` (a', b') =
+       (a `mappend` a', b `mappend` b')
+
+   instance (Monoid a) => Applicative ((,) a) where
+     pure x = (mempty, x)
+     (u, f) <*> (v, x) =
+       (u `mappend` v, f x)
+
+    ## Maybe Monoid and Applicative
+
+    instance Monoid a => Monoid (Maybe a) where
+      mempty = Nothing
+      mappend m Nothing = m
+      mappend Nothing m = m
+      mappend (Just a) (Just a') =
+        Just (a `mappend` a')
+
+    instance Applicative Maybe where
+      pure = Just
+
+      Nothing <*> _ = Nothing
+      _ <*> Nothing = Nothing
+      Just f <*> Just x = Just (f x)
 -}
 
 spec :: Spec
@@ -49,4 +78,16 @@ spec = do
       fmap (+1) (4,5) `shouldBe` (4,6)
   describe "Applicative functors are monoidal functors" $ do
     it "works as such" $ do
-      pending
+      [(*2),(*3)] <*> [4,5] `shouldBe` [8,10,12,15]
+      Just (*2) <*> Just 2 `shouldBe` Just 4
+      Just (*2) <*> Nothing `shouldBe` Nothing
+      Nothing <*> Just 2 `shouldBe` (Nothing :: Maybe Int)
+      Nothing <*> Nothing `shouldBe` (Nothing :: Maybe Int)
+      ("Woo", (+1)) <*> (" Hoo!", 2)
+        `shouldBe` ("Woo Hoo!", 3)
+    it "combines monoid values" $ do
+      (Sum 2, (+1)) <*> (Sum 1, 2) `shouldBe` (Sum 3, 3)
+      (Product 3, (+9)) <*> (Product 2, 8)
+        `shouldBe` (Product 6, 17)
+      (All True, (+1)) <*> (All False, 2) `shouldBe` (All False, 3)
+
