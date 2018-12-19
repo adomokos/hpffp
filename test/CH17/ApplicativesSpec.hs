@@ -1,4 +1,4 @@
-module CH16.ApplicativesSpec where
+module CH17.ApplicativesSpec where
 
 import Test.Hspec
 import Control.Applicative
