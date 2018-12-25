@@ -4,9 +4,76 @@ import           Test.Hspec
 import           Control.Applicative
 import           Data.Char
 import qualified Data.Map as M
+import           Data.List ( elemIndex )
 
 main :: IO ()
 main = hspec spec
+
+f :: Int -> Maybe String
+f x = lookup x [ (3, "hello")
+               , (4, "julie")
+               , (5, "kbai")]
+
+g :: Int -> Maybe String
+g y = lookup y [ (7, "sup?")
+               , (8, "chris")
+               , (9, "aloha")]
+
+h :: Int -> Maybe Int
+h z = lookup z [(2,3),(5,6),(7,8)]
+
+m :: Int -> Maybe Int
+m x = lookup x [(4,10),(8,13),(1,9001)]
+
+getLine1 :: IO String
+getLine1 = pure "hello"
+
+getLine2 :: IO String
+getLine2 = pure "there"
+
+-- Lookup exercises
+
+-- 1.
+added :: Maybe Integer
+added = (+3) <$> (lookup 3 $ zip [1,2,3] [4,5,6])
+
+-- 2.
+y :: Maybe Integer
+y = lookup 3 $ zip [1,2,3] [4,5,6]
+
+z :: Maybe Integer
+z = lookup 2 $ zip [1,2,3] [4,5,6]
+
+tupled :: Maybe (Integer,Integer)
+tupled = (,) <$> y <*> z
+
+-- 3.
+x' :: Maybe Int
+x' = elemIndex 3 [1,2,3,4,5]
+
+y' :: Maybe Int
+y' = elemIndex 4 [1,2,3,4,5]
+
+max' :: Int -> Int -> Int
+max' = max
+
+maxed :: Maybe Int
+maxed = max' <$> x' <*> y'
+
+-- 4.
+xs :: [Integer]
+xs = [1,2,3]
+ys :: [Integer]
+ys = [4,5,6]
+
+n :: Maybe Integer
+n = lookup 3 $ zip xs ys
+
+o :: Maybe Integer
+o = lookup 2 $ zip xs ys
+
+summed :: Maybe Integer
+summed = sum <$> ((,) <$> n <*> o)
 
 spec :: Spec
 spec = do
@@ -36,3 +103,29 @@ spec = do
       let m = M.fromList [(3,"hello")]
           c (x:xs) = toUpper x:xs
       fmap c (M.lookup 3 m) `shouldBe` Just "Hello"
+    it "works with more Applicativates" $ do
+      f 3 `shouldBe` Just "hello"
+      g 8 `shouldBe` Just "chris"
+      (++) <$> f 3 <*> g 7 `shouldBe` Just "hellosup?"
+      (+) <$> h 5 <*> m 1 `shouldBe` Just 9007
+      (+) <$> h 5 <*> m 6 `shouldBe` Nothing
+      liftA2 (++) (g 9) (f 4) `shouldBe` Just "alohajulie"
+      liftA2 (^) (h 5) (m 4) `shouldBe` Just 60466176
+      liftA2 (*) (h 5) (m 4) `shouldBe` Just 60
+      liftA2 (*) (h 1) (m 1) `shouldBe` Nothing
+    it "works with IO as well" $ do
+      result <- (++) <$> getLine1 <*> getLine2
+      result `shouldBe` "hellothere"
+      result2 <- (,) <$> getLine1 <*> getLine2
+      result2 `shouldBe` ("hello","there")
+      result3 <- fmap length ((++) <$> getLine1 <*> getLine2)
+      result3 `shouldBe` 10
+  describe "Exercise Lookups" $ do
+    it "type checks, 1." $ do
+      added `shouldBe` Just 9
+    it "type checks, 2." $ do
+      tupled `shouldBe` Just (6,5)
+    it "type checks, 3." $ do
+      maxed `shouldBe` Just 3
+    it "type checks, 4." $ do
+      summed `shouldBe` Just 5
