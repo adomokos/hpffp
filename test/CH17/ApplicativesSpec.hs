@@ -60,6 +60,20 @@ main = hspec spec
       Nothing <*> _ = Nothing
       _ <*> Nothing = Nothing
       Just f <*> Just x = Just (f x)
+
+    17.5 Applicative in Use
+
+    ~List Applicative~
+
+    -- f - []
+    (<*>) :: f (a -> b) -> f a -> f b
+    (<*>) :: [] (a -> b) -> [] a -> [] b
+
+    -- more syntactically typical
+    (<*>) :: [(a -> b)] ->  [a] ->  [b]
+
+    pure :: a ->  f a
+    pure :: a -> [] a
 -}
 
 spec :: Spec
@@ -90,4 +104,16 @@ spec = do
       (Product 3, (+9)) <*> (Product 2, 8)
         `shouldBe` (Product 6, 17)
       (All True, (+1)) <*> (All False, 2) `shouldBe` (All False, 3)
-
+  describe "17.5 Applicative in Use" $ do
+    it "works with Lists as Functors" $ do
+      fmap (2^) [1,2,3] `shouldBe` [2,4,8]
+      fmap (^2) [1,2,3] `shouldBe` [1,4,9]
+    it "works with Lists as Applicatives" $ do
+      [(+1),(*2)] <*> [2,4] `shouldBe` [3,5,4,8]
+      (,) <$> [1,2] <*> [3,4] `shouldBe` [(1,3),(1,4),(2,3),(2,4)]
+      -- liftA2 is the same
+      liftA2 (,) [1,2] [3,4] `shouldBe` [(1,3),(1,4),(2,3),(2,4)]
+      (+) <$> [1,2] <*> [3,5] `shouldBe` [4,6,5,7]
+      liftA2 (+) [1,2] [3,5] `shouldBe` [4,6,5,7]
+      max <$> [1,2] <*> [1,4] `shouldBe` [1,4,2,4]
+      liftA2 max [1,2] [1,4] `shouldBe` [1,4,2,4]
