@@ -31,6 +31,30 @@ instance Monoid a => Applicative (Constant a) where
   pure _ = Constant mempty
   Constant x <*> Constant y = Constant (x <> y)
 
+-- Maybe applicative exercise
+validateLength :: Int -> String -> Maybe String
+validateLength maxLen s =
+  if (length s) > maxLen
+     then Nothing
+     else Just s
+
+newtype Name = Name String deriving (Eq, Show)
+newtype Address = Address String deriving (Eq, Show)
+
+mkName :: String -> Maybe Name
+mkName s =
+  fmap Name $ validateLength 25 s
+
+mkAddress :: String -> Maybe Address
+mkAddress a =
+  fmap Address $ validateLength 100 a
+
+data Person = Person Name Address deriving (Eq, Show)
+
+mkPerson :: String -> String -> Maybe Person
+mkPerson n a =
+  Person <$> mkName n <*> mkAddress a
+
 spec :: Spec
 spec = do
   describe "Identity as Applicative" $
@@ -46,3 +70,9 @@ spec = do
           result = f <*> g
       result `shouldBe` Constant (Sum 3)
       (pure 1 :: Constant String Int) `shouldBe` Constant ""
+  describe "Exercise: Fixer Upper" $ do
+    it "works as expected" $ do
+      let r = const <$> Just "Hello" <*> Just "World"
+      r `shouldBe` Just "Hello"
+      let x = (,,,) <$> Just 90 <*> Just 10 <*> Just "Tierness" <*> Just [1,2,3]
+      x `shouldBe` Just (90, 10, "Tierness", [1,2,3])
