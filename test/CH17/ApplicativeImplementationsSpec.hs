@@ -55,6 +55,19 @@ mkPerson :: String -> String -> Maybe Person
 mkPerson n a =
   Person <$> mkName n <*> mkAddress a
 
+-- Build Maybe for Functor/Applicative
+data AMaybe a = ANothing | AJust a deriving (Show, Eq)
+
+instance Functor AMaybe where
+  fmap _ ANothing = ANothing
+  fmap f (AJust x) = AJust (f x)
+
+instance Applicative AMaybe where
+  pure = AJust
+  _ <*> ANothing = ANothing
+  ANothing <*> _ = ANothing
+  AJust f <*> AJust x = AJust (f x)
+
 spec :: Spec
 spec = do
   describe "Identity as Applicative" $
@@ -76,3 +89,10 @@ spec = do
       r `shouldBe` Just "Hello"
       let x = (,,,) <$> Just 90 <*> Just 10 <*> Just "Tierness" <*> Just [1,2,3]
       x `shouldBe` Just (90, 10, "Tierness", [1,2,3])
+  describe "AMaybe - custom type functor and applicative" $
+    it "works for both" $ do
+      fmap (*2) (AJust 3) `shouldBe` AJust 6
+      fmap (*2) ANothing `shouldBe` ANothing
+      (*) <$> AJust 2 <*> AJust 3 `shouldBe` AJust 6
+      (*) <$> AJust 2 <*> ANothing `shouldBe` ANothing
+      (*) <$> ANothing <*> AJust 3 `shouldBe` ANothing
