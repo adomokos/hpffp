@@ -7,10 +7,11 @@ module MS.MonoidsSpec where
   mappend x mempty = x
   mappend mempty x = x
 
-  In plain English, a monoid is a function that takes two arguments and follows
-  two laws: associativity and identity. Associativity means the arguments can
-  be regrouped. Identity means there exists some value that when we pass it as
-  input to our function, the operation rendered moot and the other value is returned.
+  In plain English, a monoid is a function that takes two arguments
+  and follows two laws: associativity and identity. Associativity
+  means the arguments can be regrouped. Identity means there exists
+  some value that when we pass it as input to our function, the
+  operation rendered moot and the other value is returned.
 
   Monoid the typeclass that generalizes these laws across types.
 
