@@ -4,6 +4,8 @@ import Test.Hspec
 import Test.QuickCheck
 import Test.QuickCheck.Checkers
 import Test.QuickCheck.Classes
+import Control.Monad
+import Control.Applicative
 
 import Prelude hiding (Left, Right)
 
@@ -131,8 +133,33 @@ genList = do
 
 instance Eq a => EqProp (List a) where (=-=) = eq
 
+-- === Write Functions
+-- 1.
+
+j :: Monad m => m (m a) -> m a
+j = (=<<) id
+
+l1 :: Monad m => (a -> b) -> m a -> m b
+l1 = fmap
+
+l2 :: (Applicative m, Monad m) => (a -> b -> c) -> m a -> m b -> m c
+l2 = liftA2
+
+a :: Monad m => m a -> m (a -> b) -> m b
+a = flip (<*>)
+
+meh :: Monad m
+    => [a] -> (a -> m b) -> m [b]
+meh [] _ = pure []
+meh (x:xs) f = do
+  x' <- f x
+  fmap ((:) x') (meh xs f)
+
+flipType :: (Monad m) => [m a] -> m [a]
+flipType = flip meh $ id
+
 spec :: Spec
-spec =
+spec = do
   describe "Chapter Exercises" $ do
     it "1. Nope a" $ do
       pending
@@ -161,3 +188,10 @@ spec =
         (applicative (undefined :: List (String, String, String)))
       quickBatch
         (monad (undefined :: List (String, String, String)))
+
+  describe "Function creation" $ do
+    it "works for function j" $ do
+      j [[1, 2], [], [3]] `shouldBe` ([1,2,3] :: [Int])
+      j (Just (Just 1)) `shouldBe` (Just 1 :: Maybe Int)
+      j (Just (Nothing)) `shouldBe` (Nothing :: Maybe Int)
+      j Nothing `shouldBe` (Nothing :: Maybe Int)
