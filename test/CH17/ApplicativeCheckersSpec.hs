@@ -1,7 +1,6 @@
 module CH17.ApplicativeCheckersSpec where
 
 import Test.Hspec
-import Data.Monoid
 import Test.QuickCheck
 import Test.QuickCheck.Checkers
 import Test.QuickCheck.Classes
@@ -67,7 +66,7 @@ instance Eq a => EqProp (List a) where
   xs =-= ys = xs' `eq` ys
     where xs' = let l = xs
                 in take' 3000 l
-          ys' = let l = ys
+          _ys' = let l = ys
                 in take' 3000 l
 
 
