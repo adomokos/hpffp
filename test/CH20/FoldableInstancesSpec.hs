@@ -1,8 +1,6 @@
 module CH20.FoldableInstancesSpec where
 
 import Test.Hspec
-import Test.Hspec
-import Data.Foldable
 import Data.Monoid (Product(..), Sum(..))
 
 main :: IO ()
