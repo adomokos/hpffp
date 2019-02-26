@@ -18,8 +18,33 @@ elem' x = foldr (\y acc -> (x == y) || acc) False
 minimum' :: (Foldable t, Ord a) => t a -> a
 minimum' = foldr1 (\x acc -> if x < acc then x else acc)
 
+-- An alternative solution
+newtype Min a = Min { getMin :: Maybe a } deriving (Show, Eq)
+
+instance (Ord a) => Monoid (Min a) where
+  mempty = Min Nothing
+  Min Nothing `mappend` x = x
+  x `mappend` Min Nothing = x
+  mappend (Min x) (Min y) = Min (min x y)
+
+
+myMinimum :: (Foldable t, Ord a) => t a -> Maybe a
+myMinimum = getMin . foldMap (Min . Just)
+
 maximum' :: (Foldable t, Ord a) => t a -> a
 maximum' = foldr1 (\x acc -> if x > acc then x else acc)
+
+-- An alternative solution
+newtype Max a = Max { getMax :: Maybe a } deriving (Show, Eq)
+
+instance (Ord a) => Monoid (Max a) where
+  mempty = Max Nothing
+  Max Nothing `mappend` x = x
+  x `mappend` Max Nothing = x
+  mappend (Max x) (Max y) = Max (max x y)
+
+myMaximum :: (Foldable t, Ord a) => t a -> Maybe a
+myMaximum = getMax . foldMap (Max . Just)
 
 null' :: (Foldable t) => t a -> Bool
 null' = foldr (\_ _ -> False) True
@@ -98,9 +123,15 @@ spec = do
     it "works with custom minimum'" $ do
       minimum' [1] `shouldBe` 1
       minimum' [2,3,1,4] `shouldBe` 1
+    it "works with alternative myMinimum" $ do
+      (myMinimum [] :: Maybe Int) `shouldBe` Nothing
+      myMinimum [3,4,2,5,1] `shouldBe` Just 1
     it "works with custom maximum'" $ do
       maximum' [1] `shouldBe` 1
       maximum' [2,3,1,4] `shouldBe` 4
+    it "works with alternative myMaximum" $ do
+      (myMaximum [] :: Maybe Int) `shouldBe` Nothing
+      myMaximum [2,3,1,5,4] `shouldBe` Just 5
     it "works with custom null'" $ do
       null' [1] `shouldBe` False
       null' [] `shouldBe` True
