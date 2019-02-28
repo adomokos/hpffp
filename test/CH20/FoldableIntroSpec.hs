@@ -26,11 +26,11 @@ instance Monoid MySum where
 main :: IO ()
 main = hspec spec
 
-xs :: [Sum Integer]
-xs = [1,2,3,4,5]
+myxs :: [Sum Integer]
+myxs = [1,2,3,4,5]
 
-ys :: [Product Integer]
-ys = [1,2,3,4,5]
+myys :: [Product Integer]
+myys = [1,2,3,4,5]
 
 spec :: Spec
 spec =
@@ -45,8 +45,8 @@ spec =
     context "fold" $ do
       it "can fold over Monoid lists" $ do
         fold (map Sum [1..5]) `shouldBe` Sum 15
-        fold xs `shouldBe` Sum 15
-        fold ys `shouldBe` Product 120
+        fold myxs `shouldBe` Sum 15
+        fold myys `shouldBe` Product 120
         fold ["hello", "world"] `shouldBe` "helloworld"
 
     context "foldMap" $ do

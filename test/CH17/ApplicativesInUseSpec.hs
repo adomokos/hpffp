@@ -1,4 +1,4 @@
-module CH17.ApplicativesInUseSpec where
+module CH17.ApplicativesInUseSpec (spec) where
 
 import           Test.Hspec
 import           Control.Applicative
@@ -20,7 +20,7 @@ g y = lookup y [ (7, "sup?")
                , (9, "aloha")]
 
 h :: Int -> Maybe Int
-h z = lookup z [(2,3),(5,6),(7,8)]
+h z' = lookup z' [(2,3),(5,6),(7,8)]
 
 m :: Int -> Maybe Int
 m x = lookup x [(4,10),(8,13),(1,9001)]
@@ -38,14 +38,14 @@ added :: Maybe Integer
 added = (+3) <$> (lookup 3 $ zip [1,2,3] [4,5,6])
 
 -- 2.
-y :: Maybe Integer
-y = lookup 3 $ zip [1,2,3] [4,5,6]
+theYs :: Maybe Integer
+theYs = lookup 3 $ zip [1,2,3] [4,5,6]
 
 z :: Maybe Integer
 z = lookup 2 $ zip [1,2,3] [4,5,6]
 
 tupled :: Maybe (Integer,Integer)
-tupled = (,) <$> y <*> z
+tupled = (,) <$> theYs <*> z
 
 -- 3.
 x' :: Maybe Int
@@ -61,16 +61,17 @@ maxed :: Maybe Int
 maxed = max' <$> x' <*> y'
 
 -- 4.
-xs :: [Integer]
-xs = [1,2,3]
-ys :: [Integer]
-ys = [4,5,6]
+applicativeXs :: [Integer]
+applicativeXs = [1,2,3]
+
+applicativeYs :: [Integer]
+applicativeYs = [4,5,6]
 
 n :: Maybe Integer
-n = lookup 3 $ zip xs ys
+n = lookup 3 $ zip applicativeXs applicativeYs
 
 o :: Maybe Integer
-o = lookup 2 $ zip xs ys
+o = lookup 2 $ zip applicativeXs applicativeYs
 
 summed :: Maybe Integer
 summed = sum <$> ((,) <$> n <*> o)
@@ -97,12 +98,14 @@ spec = do
       let y = lookup 4 [(3,"hello")]
       y `shouldBe` Nothing
       fmap length y `shouldBe` Nothing
-      let c (x:xs) = toUpper x:xs
-      fmap c l `shouldBe` Just "Hello"
+      let c' (x:xs) = toUpper x:xs
+          c' [] = []
+      fmap c' l `shouldBe` Just "Hello"
     it "works with Data.Map" $ do
-      let m = M.fromList [(3,"hello")]
-          c (x:xs) = toUpper x:xs
-      fmap c (M.lookup 3 m) `shouldBe` Just "Hello"
+      let m' = M.fromList [(3,"hello")]
+          c' (x:xs) = toUpper x:xs
+          c' [] = []
+      fmap c' (M.lookup 3 m') `shouldBe` Just "Hello"
     it "works with more Applicativates" $ do
       f 3 `shouldBe` Just "hello"
       g 8 `shouldBe` Just "chris"
