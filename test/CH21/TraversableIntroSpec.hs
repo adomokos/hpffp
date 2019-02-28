@@ -2,6 +2,8 @@ module CH21.TraversableIntroSpec where
 
 import Test.Hspec
 
+import Data.Maybe (catMaybes)
+
 main :: IO ()
 main = hspec spec
 
@@ -36,3 +38,24 @@ spec = do
         `shouldBe` Just 6
       let xs = [Just 1, Just 2, Nothing]
       fmap product xs `shouldBe` [1,2,1]
+    it "to these: " $ do
+      fmap Just [1,2,3] `shouldBe` [Just 1, Just 2, Just 3]
+      (sequenceA $ fmap Just [1,2,3])
+        `shouldBe` Just [1,2,3]
+      let xs = [Just 1, Just 2, Just 3]
+      sequenceA xs `shouldBe` Just [1,2,3]
+      let xsn = [Just 1, Just 2, Nothing]
+      sequenceA xsn `shouldBe` Nothing
+      (fmap sum $ sequenceA xs)
+        `shouldBe` Just 6
+      (fmap product $ sequenceA xsn)
+        `shouldBe` Nothing
+    it "note catMaybe from Data.Maybe" $ do
+      let xs = [Just 1, Just 2, Just 3]
+      let xsn = [Just 1, Just 2, Nothing]
+      catMaybes xs `shouldBe` [1..3]
+      catMaybes xsn `shouldBe` [1,2]
+      let xsn' = xs ++ [Nothing]
+      (sum $ catMaybes xsn') `shouldBe` 6
+      (fmap sum $ sequenceA xsn')
+        `shouldBe` Nothing
