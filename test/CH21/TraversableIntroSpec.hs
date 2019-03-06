@@ -8,13 +8,16 @@ main :: IO ()
 main = hspec spec
 
 {-
-  class (Functor t, Foldable t)
-    => Traversable t where
-    traverse :: Applicative f
-             => (a -> f b)
-             -> t a
-             -> f (t b)
+  class (Functor t, Foldable t) => Traversable t where
+    traverse :: Applicative f => (a -> f b) -> t a -> f (t b)
     traverse f = sequenceA . fmap f
+
+    sequenceA :: Applicative f => t (f a) -> f (t a)
+
+    -- These methods have default definitions.
+    -- They are merely specialized versions of tehe other two.
+    mapM     :: Monad m => (a -> m b) -> t a -> m (t b)
+    sequence :: Monad m => t (m a) -> m (t b)
 
   fmap     ::     Functor f => (a -> f b) -> f a -> f b
   traverse :: Applicative f => (a -> f b) -> t a -> f (t b)
