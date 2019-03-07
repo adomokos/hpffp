@@ -1,6 +1,7 @@
 module CH21.TraversableInstancesSpec where
 
 import Test.Hspec
+import Data.Monoid
 
 main :: IO ()
 main = hspec spec
@@ -44,4 +45,17 @@ spec = do
           `shouldBe` (TLeft "fail" :: TEither String Int)
         (TRight (+2)) <*> (TRight 3)
           `shouldBe` (TRight 5 :: TEither String Int)
-
+      it "works with Foldable" $ do
+        foldMap (+2) (TLeft "Hello" :: TEither String (Sum Int))
+          `shouldBe` Sum 0
+        foldMap (+2) (TRight (Sum 3) :: TEither String (Sum Int))
+          `shouldBe` Sum 5
+        foldr (+) 0 (TLeft "Hello" :: TEither String Int)
+          `shouldBe` 0
+        foldr (+) 1 (TRight 5 :: TEither String Int)
+          `shouldBe` 6
+      it "works with Traversable" $ do
+        traverse (\x -> Just (x+1)) (TLeft "Hello" :: TEither String Int)
+          `shouldBe` pure (TLeft "Hello")
+        traverse (\x -> Just (x+1)) (TRight 3 :: TEither String Int)
+          `shouldBe` pure (TRight 4)
