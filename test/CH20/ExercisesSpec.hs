@@ -21,12 +21,12 @@ minimum' = foldr1 (\x acc -> if x < acc then x else acc)
 -- An alternative solution
 newtype Min a = Min { getMin :: Maybe a } deriving (Show, Eq)
 
+instance (Ord a) => Semigroup (Min a) where
+  x <> Min Nothing = x
+  (Min x) <> (Min y) = Min (min x y)
+
 instance (Ord a) => Monoid (Min a) where
   mempty = Min Nothing
-  Min Nothing `mappend` x = x
-  x `mappend` Min Nothing = x
-  mappend (Min x) (Min y) = Min (min x y)
-
 
 myMinimum :: (Foldable t, Ord a) => t a -> Maybe a
 myMinimum = getMin . foldMap (Min . Just)
@@ -37,11 +37,13 @@ maximum' = foldr1 (\x acc -> if x > acc then x else acc)
 -- An alternative solution
 newtype Max a = Max { getMax :: Maybe a } deriving (Show, Eq)
 
+instance (Ord a) => Semigroup (Max a) where
+  Max Nothing <> x = x
+  x <> Max Nothing = x
+  (Max x) <> (Max y) = Max (max x y)
+
 instance (Ord a) => Monoid (Max a) where
   mempty = Max Nothing
-  Max Nothing `mappend` x = x
-  x `mappend` Max Nothing = x
-  mappend (Max x) (Max y) = Max (max x y)
 
 myMaximum :: (Foldable t, Ord a) => t a -> Maybe a
 myMaximum = getMax . foldMap (Max . Just)

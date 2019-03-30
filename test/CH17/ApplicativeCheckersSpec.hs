@@ -15,9 +15,11 @@ instance Arbitrary Bull where
     frequency [ (1, return Fools)
               , (1, return Twoo)]
 
+instance Semigroup Bull where
+  _ <> _ = Fools
+
 instance Monoid Bull where
   mempty = Fools
-  mappend _ _ = Fools
 
 instance EqProp Bull where (=-=) = eq
 
@@ -38,9 +40,11 @@ instance Functor List where
   fmap _ Nil = Nil
   fmap f (Cons x list) = Cons (f x) (fmap f list)
 
+instance Semigroup (List a) where
+  (<>) = append
+
 instance Monoid (List a) where
   mempty = Nil
-  mappend = append
 
 append :: List a -> List a -> List a
 append Nil ys = ys

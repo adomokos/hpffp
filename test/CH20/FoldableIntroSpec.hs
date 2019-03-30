@@ -8,9 +8,11 @@ import Data.Monoid (Sum(..), Product(..), All(..), Any(..)
 
 newtype MySum = MySum Int deriving (Eq, Show)
 
+instance Semigroup MySum where
+  (MySum x) <> (MySum y) = MySum (x+y)
+
 instance Monoid MySum where
   mempty = MySum 0
-  mappend (MySum x) (MySum y) = MySum (x+y)
 
 {-
   class Foldable (t :: * -> *) where

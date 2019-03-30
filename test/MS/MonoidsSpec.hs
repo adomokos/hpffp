@@ -35,21 +35,26 @@ data Optional a =
   | Only a
   deriving (Eq, Show)
 
+instance (Monoid a) => Semigroup (Optional a) where
+  Nada <> Nada = Nada
+  Only x <> Nada = Only x
+  Nada <> Only x = Only x
+  Only x <> Only y = Only (x <> y)
+
 instance Monoid a => Monoid (Optional a) where
   mempty = Nada
-  Only x `mappend` Nada = Only x
-  Nada `mappend` Only x = Only x
-  Only x `mappend` Only y = Only (x <> y)
 
 newtype First' a = First' { getFirst' :: Optional a }
   deriving (Eq, Show)
 
 instance Monoid (First' a) where
   mempty = First' Nada
-  mappend (First' Nada) (First' Nada) = First' Nada
-  mappend (First' Nada) (First' (Only x)) = First' (Only x)
-  mappend (First' (Only x)) (First' Nada) = First' (Only x)
-  mappend (First' (Only x)) (First' (Only _)) = First' (Only x)
+
+instance Semigroup (First' a) where
+  (First' Nada) <> (First' Nada) = First' Nada
+  (First' Nada) <> (First' (Only x)) = First' (Only x)
+  (First' (Only x)) <> (First' Nada) = First' (Only x)
+  (First' (Only x)) <> (First' (Only _)) = First' (Only x)
 
 spec :: Spec
 spec = do

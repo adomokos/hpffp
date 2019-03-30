@@ -1,3 +1,5 @@
 .stack-work/
 hpffp.cabal
 *~
+.nvimrc
+.ghci

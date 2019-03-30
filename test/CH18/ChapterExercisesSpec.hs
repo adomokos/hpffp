@@ -105,10 +105,12 @@ instance Functor List where
   fmap _ Nil = Nil
   fmap f (Cons x l) = Cons (f x) (fmap f l)
 
+instance Semigroup (List a) where
+  Nil <> _ = Nil
+  (Cons h t) <> ls = Cons h (t `mappend` ls)
+
 instance Monoid (List a) where
   mempty = Nil
-  mappend Nil _ = Nil
-  mappend (Cons h t) ls = Cons h (t `mappend` ls)
 
 instance Applicative List where
   pure x = Cons x Nil
